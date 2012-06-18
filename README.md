@@ -1,4 +1,4 @@
-PhoneGapBuild Extension for Brackets
+# PhoneGapBuild Extension for Brackets
 
 The goal of this project is to create an extension that allows Brackets 
 users an easy path to getting web projects from Brackets into a mobile 
