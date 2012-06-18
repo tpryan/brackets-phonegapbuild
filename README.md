@@ -19,3 +19,12 @@ Things that we will have to figure out:
 
 * Granting read/write access to PhoneGap Build through Brackets
 * Maintaining read/write access to PhoneGap Build through Brackets
+
+
+TODO's
+
+* Create interface for logging in to PhoneGap Build
+* Create local storage for:
+    * token
+    * file location to project link
+* Figure out how to handle online/offline    
