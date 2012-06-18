@@ -15,3 +15,7 @@ There are also some things that might be nice, but aren't necessary:
 * Prompt for download of apps
 * Allow PhoneGap Build Management
 
+Things that we will have to figure out:
+
+* Granting read/write access to PhoneGap Build through Brackets
+* Maintaining read/write access to PhoneGap Build through Brackets
