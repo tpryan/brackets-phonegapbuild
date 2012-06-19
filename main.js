@@ -19,31 +19,23 @@ define(function (require, exports, module) {
     var PG_LOGINLOGOUT = "PhoneGap.login-logout";
     CommandManager.register("Login", PG_LOGINLOGOUT, handleTogglePGLogin);
 
-
-
-
+    // Initializing the menus
     var menu;
     menu = Menus.addMenu("PhoneGap", "tpryan.phonegap.phonegap");
     menu.addMenuItem(PG_LOGINLOGOUT);
     menu.addMenuItem(PG_LIST);
-    console.log("Menu:");
-    console.log(menu);
-
-
-
 
     // Local modules
     require('phonegapbuild');    
     var phonegapbuild = new PhoneGapBuild();
+    // Adding all of the listeners in one spot. 
     phonegapbuild.addListener("initialized",  handlePGInitialize);
-    phonegapbuild.initialize();
     phonegapbuild.addListener("login",  getPGList);
     phonegapbuild.addListener("login",  switchToLogout);
     phonegapbuild.addListener("logout", switchToLogin);
-    
-    
 
-
+    phonegapbuild.initialize();
+    
     // Function to run when the menu item is clicked
     function handlePGList() {
         var list = "";
@@ -68,28 +60,22 @@ define(function (require, exports, module) {
     }
 
     function handleTogglePGLogin(){
-        console.log("Toggling login");
-        console.log(phonegapbuild);
         if (phonegapbuild.initialized == true){
-            console.log("Logout");
             handlePGLogout()
         }
         else{
-            console.log("Login");
             handlePGLogin();  
         }
 
     }
 
     function handlePGLogin(){
-        console.log("Handle Login");
-        toggleLoginDisplay();
+        toggleLoginDisplay("open");
     }
 
     function handlePGLogout(){
-        console.log("Handle Logout");
         phonegapbuild.logout();
-        CommandManager.get(PG_LOGINLOGOUT).setName("Login");
+        switchToLogin();
     }
 
     function toggleLoginDisplay(force){
@@ -145,7 +131,7 @@ define(function (require, exports, module) {
         });
 
         
-        EditorManager.resizeEditor();
+        toggleLoginDisplay("close")
 
         console.log(e);
         if (e.detail.tokenDefined == true){
