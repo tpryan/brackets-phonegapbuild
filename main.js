@@ -16,16 +16,16 @@ define(function (require, exports, module) {
     var PG_LIST = "PhoneGap.list";
     CommandManager.register("List Build Projects", PG_LIST, handlePGList);
 
-    var PG_LOGIN = "PhoneGap.login";
-    CommandManager.register("Login", PG_LOGIN, handlePGLogin);
+    var PG_LOGINLOGOUT = "PhoneGap.login-logout";
+    CommandManager.register("Login", PG_LOGINLOGOUT, handleTogglePGLogin);
 
-    var PG_LOGOUT = "PhoneGap.logout";
-    CommandManager.register("Logout", PG_LOGOUT, handlePGLogout);
+
 
 
     var menu;
     menu = Menus.addMenu("PhoneGap", "tpryan.phonegap.phonegap");
     menu.addMenuItem(PG_LIST);
+    menu.addMenuItem(PG_LOGINLOGOUT);
     console.log("Menu:");
     console.log(menu);
 
@@ -37,6 +37,8 @@ define(function (require, exports, module) {
     var phonegapbuild = new PhoneGapBuild();
     phonegapbuild.addListener("initialized",  handlePGInitialize);
     phonegapbuild.initialize();
+    phonegapbuild.addListener("tokenloaded",  getPGList);
+    phonegapbuild.addListener("listloaded",  handleGetList);
     
     
 
@@ -51,19 +53,38 @@ define(function (require, exports, module) {
         window.alert(list);
     }
 
+    function handleGetList(){
+        CommandManager.get(PG_LOGINLOGOUT).setName("Logout");
+        toggleLoginDisplay();
+    }
+
     function getPGList(){
         phonegapbuild.getList()
     }
 
+    function handleTogglePGLogin(){
+        console.log("Toggling login");
+        console.log(phonegapbuild);
+        if (phonegapbuild.initialized == true){
+            console.log("Logout");
+            handlePGLogout()
+        }
+        else{
+            console.log("Login");
+            handlePGLogin();  
+        }
+
+    }
+
     function handlePGLogin(){
-        console.log("show Login Form");
+        console.log("Handle Login");
         toggleLoginDisplay();
     }
 
     function handlePGLogout(){
+        console.log("Handle Logout");
         phonegapbuild.logout();
-        menu.addMenuItem(PG_LOGIN);
-        //menu.removeMenuItem(PG_LOGOUT);
+        CommandManager.get(PG_LOGINLOGOUT).setName("Login");
     }
 
     function toggleLoginDisplay(){
@@ -91,8 +112,10 @@ define(function (require, exports, module) {
                                     '    <div class="title">PhoneGap Build</div><a href="#" class="close">&times;</a>' +
                                     '  </div>' +
                                     '    <form>' +
-                                    '        <label for="username">Username:</label> <input id="username" type="email" name="username" /><br />' +
-                                    '        <label for="password">Password:</label> <input id="password" type="password" name="password" /><br />' +
+                                    '        <label for="username">Username:</label>'+
+                                    '        <input id="username" type="email" name="username" placeholder="Username" /><br />' +
+                                    '        <label for="password">Password:</label>' + 
+                                    '        <input id="password" type="password" name="password" placeholder="Password" /><br />' +
                                     '        <input id="loginsubmit" type="submit" class="btn" name="sumbit" value="Login!" /><br />' +
                                     '    </form>' +  
                                 '</div>');
@@ -108,16 +131,18 @@ define(function (require, exports, module) {
 
         
         EditorManager.resizeEditor();
+
         console.log(e);
         if (e.detail.tokenDefined == true){
             getPGList();
             console.log("Token was in localstorage");
-            menu.addMenuItem(PG_LOGOUT);
+            CommandManager.get(PG_LOGINLOGOUT).setName("Logout");
+
+
         }
         else{
             console.log("Token was NOT in localstorage");
-            menu.addMenuItem(PG_LOGIN);
-            phonegapbuild.addListener("tokenloaded",  getPGList);
+            
 
         }
     }

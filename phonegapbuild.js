@@ -10,7 +10,7 @@ var PhoneGapBuild = function() {
 
 	this.token = "";
 	this.list ="List of PhoneGap Build projects."
-  this.intialized = false;
+  this.initialized = false;
 	this.getToken = getToken; 
 	this.getList = getList;
   this.addListener = addListener;
@@ -41,6 +41,7 @@ var PhoneGapBuild = function() {
 	function setToken(token){
 		self.token = token;
     localStorage.setItem('token', token);
+    console.log("Token set to: " + token);
 		console.log(this);
 	}
 
@@ -77,9 +78,12 @@ var PhoneGapBuild = function() {
   }
 
   function logout(){
+    console.log("Logout");
     setToken("");
-    tokenDefined = true;
-    self.initialized = true;
+    self.tokenDefined = false;
+    self.initialized = false;
+    this.initialized = false;
+    self.list = [];
 
     var myEvent = new CustomEvent("logout", {});
     fire(myEvent);
@@ -159,7 +163,7 @@ var PhoneGapBuild = function() {
 
     
 
-    
+
 
 
 }	
