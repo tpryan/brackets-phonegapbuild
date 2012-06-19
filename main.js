@@ -24,8 +24,8 @@ define(function (require, exports, module) {
 
     var menu;
     menu = Menus.addMenu("PhoneGap", "tpryan.phonegap.phonegap");
-    menu.addMenuItem(PG_LIST);
     menu.addMenuItem(PG_LOGINLOGOUT);
+    menu.addMenuItem(PG_LIST);
     console.log("Menu:");
     console.log(menu);
 
@@ -37,8 +37,9 @@ define(function (require, exports, module) {
     var phonegapbuild = new PhoneGapBuild();
     phonegapbuild.addListener("initialized",  handlePGInitialize);
     phonegapbuild.initialize();
-    phonegapbuild.addListener("tokenloaded",  getPGList);
-    phonegapbuild.addListener("listloaded",  handleGetList);
+    phonegapbuild.addListener("login",  getPGList);
+    phonegapbuild.addListener("login",  switchToLogout);
+    phonegapbuild.addListener("logout", switchToLogin);
     
     
 
@@ -53,9 +54,13 @@ define(function (require, exports, module) {
         window.alert(list);
     }
 
-    function handleGetList(){
+    function switchToLogout(){
         CommandManager.get(PG_LOGINLOGOUT).setName("Logout");
-        toggleLoginDisplay();
+        toggleLoginDisplay("close");
+    }
+
+    function switchToLogin(){
+        CommandManager.get(PG_LOGINLOGOUT).setName("Login");
     }
 
     function getPGList(){
@@ -87,14 +92,24 @@ define(function (require, exports, module) {
         CommandManager.get(PG_LOGINLOGOUT).setName("Login");
     }
 
-    function toggleLoginDisplay(){
+    function toggleLoginDisplay(force){
+      if(typeof(force)==='undefined') force = "";  
       var $pgLogin = $("#pg-login");
         
-      if ($pgLogin.css("display") === "none") {
-          $pgLogin.show();
-      } else {
-          $pgLogin.hide();
-      }
+      if (force.length > 0){
+            if (force === "open") {
+              $pgLogin.show();
+            } else if(force === "close") {
+              $pgLogin.hide();
+            }
+      }  
+      else{
+          if ($pgLogin.css("display") === "none") {
+              $pgLogin.show();
+          } else {
+              $pgLogin.hide();
+          }
+      }    
       EditorManager.resizeEditor();
     }
 
@@ -102,7 +117,7 @@ define(function (require, exports, module) {
         event.preventDefault();
         var $username = $('#username').val(); 
         var $password = $('#password').val();
-        phonegapbuild.getToken($username, $password); 
+        phonegapbuild.login($username, $password); 
     }
 
     function handlePGInitialize(e){

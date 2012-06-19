@@ -11,7 +11,7 @@ var PhoneGapBuild = function() {
 	this.token = "";
 	this.list ="List of PhoneGap Build projects."
   this.initialized = false;
-	this.getToken = getToken; 
+	this.login = login; 
 	this.getList = getList;
   this.addListener = addListener;
   this.initialize = initialize;
@@ -49,14 +49,14 @@ var PhoneGapBuild = function() {
 		self.list = list;
 	}
 
-	function getToken(username,password){
+	function login(username,password){
 		console.log(this);
 		$.ajax({
           url: URL_TOKEN,
           type:"post",
           error: errorHandler,
           context: PhoneGapBuild,
-          success: handleTokenSuccess,
+          success: handleLoginSuccess,
           username: username,
           password: password,   
           cache:false,
@@ -64,16 +64,12 @@ var PhoneGapBuild = function() {
         });
 	}
 
-	function handleTokenSuccess(response, status, jqXHR){
+	function handleLoginSuccess(response, status, jqXHR){
     console.log("Token Retreived");
     console.log(response);
     setToken(response.token);
 
-    var myEvent = new CustomEvent("tokenloaded", {
-      detail: {
-        token: response.token
-      }
-    });
+    var myEvent = new CustomEvent("login", {});
     fire(myEvent);
   }
 
