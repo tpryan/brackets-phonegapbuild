@@ -1,155 +1,49 @@
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window, event, CustomEvent, localStorage */
 
-var PhoneGapBuild = function() {
+var PhoneGapBuild = function () {
+    'use strict';
+	var URL_BASE = "https://build.phonegap.com",
+        URL_TOKEN = URL_BASE + "/token",
+        URL_LIST = URL_BASE + "/api/v1/apps",
+        self = this;
 
-	var URL_BASE = "https://build.phonegap.com";
-	var URL_TOKEN = URL_BASE + "/token";
-	var URL_LIST = URL_BASE + "/api/v1/apps";
-
-	
-  this._listeners = {};
-
-	this.token = "";
-	this.list ="List of PhoneGap Build projects."
-  this.initialized = false;
-	this.login = login; 
-	this.getList = getList;
-  this.addListener = addListener;
-  this.initialize = initialize;
-  this.logout = logout;    
-
-  var self = this;
-
-  function initialize(){
-    var token = localStorage.getItem("token");
-    var tokenDefined = false;
-
-    if (token != ""){
-      tokenDefined = true;
-      setToken(token);
-      self.initialized = true;
-    }
-
-    var myEvent = new CustomEvent("initialized", {
-      detail: {
-        tokenDefined: tokenDefined
-      }
-    });
-    fire(myEvent);
-
-  }
-
-	function setToken(token){
-		self.token = token;
-    localStorage.setItem('token', token);
-    console.log("Token set to: " + token);
-		console.log(this);
-	}
-
-	function setList(list){
-		self.list = list;
-	}
-
-	function login(username,password){
-		console.log(this);
-		$.ajax({
-          url: URL_TOKEN,
-          type:"post",
-          error: errorHandler,
-          context: PhoneGapBuild,
-          success: handleLoginSuccess,
-          username: username,
-          password: password,   
-          cache:false,
-          crossDomain:true
-        });
-	}
-
-	function handleLoginSuccess(response, status, jqXHR){
-    console.log("Token Retreived");
-    console.log(response);
-    setToken(response.token);
-
-    var myEvent = new CustomEvent("login", {});
-    fire(myEvent);
-  }
-
-  function logout(){
-    console.log("Logout");
-    setToken("");
-    self.tokenDefined = false;
-    self.initialized = false;
-    this.initialized = false;
-    self.list = [];
-
-    var myEvent = new CustomEvent("logout", {});
-    fire(myEvent);
-  }
-
-
-  function errorHandler(error){
-    console.log("Login Error");
-    console.log(error.responseText);
-  }
-
-  function getList(){
-  	$.ajax({
-        url: URL_LIST + "?auth_token=" + this.token,
-        success: handleListSuccess,
-        dataType: 'jsonp', 
-        type:"get",
-        error: errorHandler,
-        cache:false,
-        crossDomain:true
-      });
-  }
-
-  function handleListSuccess(response, status, jqXHR){
-    console.log("List Retreived");
-    console.log(response.apps);
-    setList(response.apps);
-
-    var myEvent = new CustomEvent("listloaded", {
-      detail: {
-        list: response.apps
-      }
-    });
-    fire(myEvent);
-  }
-
-
-  function addListener(type, listener){
-        if (typeof this._listeners[type] == "undefined"){
-            this._listeners[type] = [];
+    function addListener(type, listener) {
+        if (typeof self._listeners[type] === "undefined") {
+            self._listeners[type] = [];
         }
 
-        this._listeners[type].push(listener);
+        self._listeners[type].push(listener);
     }
 
-    function fire(event){
-        if (typeof event == "string"){
+    function fire(event) {
+        var i = 0;
+        if (typeof event === "string") {
             event = { type: event };
         }
-        if (!event.target){
+        if (!event.target) {
             event.target = self;
         }
 
-        if (!event.type){  //falsy
+        if (!event.type) {  //falsy
             throw new Error("Event object missing 'type' property.");
         }
 
-        if (self._listeners[event.type] instanceof Array){
+        if (self._listeners[event.type] instanceof Array) {
             var listeners = self._listeners[event.type];
-            for (var i=0, len=listeners.length; i < len; i++){
+
+            for (i = 0; i < listeners.length; i++) {
                 listeners[i].call(self, event);
             }
         }
     }
 
-    function removeListener(type, listener){
-        if (this._listeners[type] instanceof Array){
-            var listeners = this._listeners[type];
-            for (var i=0, len=listeners.length; i < len; i++){
-                if (listeners[i] === listener){
+    function removeListener(type, listener) {
+        var i = 0;
+        if (self._listeners[type] instanceof Array) {
+            var listeners = self._listeners[type];
+            for (i = 0; i < listeners.length; i++) {
+                if (listeners[i] === listener) {
                     listeners.splice(i, 1);
                     break;
                 }
@@ -157,9 +51,104 @@ var PhoneGapBuild = function() {
         }
     }
 
-    
+    function errorHandler(error) {
+        console.log("Login Error");
+        console.log(error.responseText);
+    }
+
+    function setToken(token) {
+        self.token = token;
+        localStorage.setItem('token', token);
+        console.log("Token set to: " + token);
+    }
+
+    function initialize() {
+        var token = localStorage.getItem("token");
+        var tokenDefined = false;
+
+        if (token !== "") {
+            tokenDefined = true;
+            setToken(token);
+            self.initialized = true;
+        }
+
+        var myEvent = new CustomEvent("initialized", {detail: {tokenDefined: tokenDefined}});
+        fire(myEvent);
+
+    }
 
 
 
+	function setList(list) {
+		self.list = list;
+	}
 
-}	
+    function handleLoginSuccess(response, status, jqXHR) {
+        console.log("Token Retreived");
+        console.log(response);
+        setToken(response.token);
+
+        var myEvent = new CustomEvent("login", {});
+        fire(myEvent);
+    }
+
+	function login(username, password) {
+		$.ajax({
+            url: URL_TOKEN,
+            type: "post",
+            error: errorHandler,
+            context: PhoneGapBuild,
+            success: handleLoginSuccess,
+            username: username,
+            password: password,
+            cache: false,
+            crossDomain: true
+        });
+	}
+
+
+
+    function logout() {
+        console.log("Logout");
+        setToken("");
+        self.tokenDefined = false;
+        self.initialized = false;
+        self.list = [];
+
+        var myEvent = new CustomEvent("logout", {});
+        fire(myEvent);
+    }
+
+    function handleListSuccess(response, status, jqXHR) {
+        console.log("List Retreived");
+        console.log(response.apps);
+        setList(response.apps);
+
+        var myEvent = new CustomEvent("listloaded", {detail: {list: response.apps}});
+        fire(myEvent);
+    }
+
+    function getList() {
+        $.ajax({
+            url: URL_LIST + "?auth_token=" + self.token,
+            success: handleListSuccess,
+            dataType: 'jsonp',
+            type: "get",
+            error: errorHandler,
+            cache: false,
+            crossDomain: true
+        });
+    }
+
+    this._listeners = {};
+
+    this.token = "";
+    this.list = "List of PhoneGap Build projects.";
+    this.initialized = false;
+    this.login = login;
+    this.getList = getList;
+    this.addListener = addListener;
+    this.initialize = initialize;
+    this.logout = logout;
+
+};
