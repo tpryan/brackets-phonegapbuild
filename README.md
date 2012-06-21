@@ -23,8 +23,8 @@ Things that we will have to figure out:
 
 TODO's
 
-* Create interface for logging in to PhoneGap Build
 * Create local storage for:
     * token
     * file location to project link
-* Figure out how to handle online/offline    
+* Figure out how to handle online/offline
+* Figure out how to upload files from Brackets to PhoneGap Build.    

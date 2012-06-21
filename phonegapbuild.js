@@ -6,13 +6,13 @@ var PhoneGapBuild = function () {
 	var URL_BASE = "https://build.phonegap.com",
         URL_TOKEN = URL_BASE + "/token",
         URL_LIST = URL_BASE + "/api/v1/apps",
+        URL_REBUILD = URL_BASE + "/api/v1/apps/",
         self = this;
 
     function addListener(type, listener) {
         if (typeof self._listeners[type] === "undefined") {
             self._listeners[type] = [];
         }
-
         self._listeners[type].push(listener);
     }
 
@@ -52,7 +52,9 @@ var PhoneGapBuild = function () {
     }
 
     function errorHandler(error) {
-        console.log("Login Error");
+        console.log("Call Error");
+        console.log(error.status);
+        console.log(error.statusText);
         console.log(error.responseText);
     }
 
@@ -74,6 +76,25 @@ var PhoneGapBuild = function () {
 
         var myEvent = new CustomEvent("initialized", {detail: {tokenDefined: tokenDefined}});
         fire(myEvent);
+
+    }
+
+    function handlerUploadtToProject(response, status, jqXHR) {
+        console.log(response);
+    }
+
+    function uploadFileToProject(id, FileEntry) {
+
+
+        var urlToCall = URL_REBUILD + id + "?auth_token=" + self.token;
+        var xhr = new XMLHttpRequest();
+        xhr.open('put', urlToCall, true);        
+        console.log(FileEntry);
+
+        xhr.send(FileEntry);
+        
+
+
 
     }
 
@@ -105,6 +126,24 @@ var PhoneGapBuild = function () {
             crossDomain: true
         });
 	}
+
+    function handleRebuildSuccess(response, status, jqXHR) {
+        console.log('Rebuild Requested');
+        var myEvent = new CustomEvent("rebuildRequested", {});
+        fire(myEvent);
+    }
+
+    function rebuild(id) {
+        $.ajax({
+            url: URL_REBUILD + "/" + id + "?auth_token=" + self.token,
+            type: "put",
+            error: errorHandler,
+            context: PhoneGapBuild,
+            success: handleRebuildSuccess,
+            cache: false,
+            crossDomain: true
+        });
+    }
 
 
 
@@ -150,5 +189,7 @@ var PhoneGapBuild = function () {
     this.addListener = addListener;
     this.initialize = initialize;
     this.logout = logout;
+    this.rebuild = rebuild;
+    this.uploadFileToProject = uploadFileToProject;
 
 };
