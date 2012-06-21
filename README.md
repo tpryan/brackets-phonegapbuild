@@ -17,14 +17,13 @@ There are also some things that might be nice, but aren't necessary:
 
 Things that we will have to figure out:
 
-* Granting read/write access to PhoneGap Build through Brackets
-* Maintaining read/write access to PhoneGap Build through Brackets
+* Getting files up to PhoneGap Build
+* Associating Folders with PGB Projects
 
 
 TODO's
 
 * Create local storage for:
-    * token
     * file location to project link
 * Figure out how to handle online/offline
 * Figure out how to upload files from Brackets to PhoneGap Build.    
