@@ -18,9 +18,14 @@ define(function (require, exports, module) {
     var local_require = require;
     var id = ""; //hardcode this value for now.
 
+    var PG_PROJECT_ASSOCIATION = "pg.toggleProjectAssociation";   // package-style naming to avoid collisions
+
+
     // Local modules
     require('phonegapbuild');
     var phonegapbuild = new PhoneGapBuild();
+
+
 
     function togglePGMenu(force) {
         if (typeof (force) === 'undefined') {
@@ -46,7 +51,7 @@ define(function (require, exports, module) {
         }
     }
 
-    function toggleLoginDisplay(force) {
+    function togglePGPanelDisplay(force) {
         if (typeof (force) === 'undefined') {
             force = "";
         }
@@ -73,7 +78,8 @@ define(function (require, exports, module) {
 
     function handlePGMenuLogin(e) {
         e.preventDefault();
-        toggleLoginDisplay("open");
+        createPGLoginForm();
+        togglePGPanelDisplay("open");
         togglePGMenu("close");
     }
 
@@ -90,11 +96,6 @@ define(function (require, exports, module) {
         console.log(error.responseText);
     }
 
-    function handleRebuild() {
-        //phonegapbuild.rebuild(109540);
-
-
-    }
 
     function setMenuToActive() {
         var iconURL = local_require.nameToUrl('assets/pg_icon_idle.png').split('[')[0];
@@ -147,6 +148,21 @@ define(function (require, exports, module) {
         setMenuToLogout();
     }
 
+    function handlePGMenuRebuild(e) {
+        e.preventDefault();
+        togglePGMenu("close");
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+        var id = phonegapbuild.getAssociation(projectPath);
+        phonegapbuild.rebuild(id);
+        setMenuToBuilding();
+    }
+
+
+    function createLRebuildMenuItem() {
+        $("#pg-menu").append('<li id="rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
+        $("#pg-rebuild").click(handlePGMenuRebuild);
+    }
+
     function createLogoutMenuItem() {
         $("#pg-menu").append('<li id="logout-holder"><a id="pg-logout" href="">Logout</li>');
         $("#pg-logout").click(handlePGMenuLogout);
@@ -157,14 +173,76 @@ define(function (require, exports, module) {
         $("#pg-list").click(handlePGMenuList);
     }
 
+    function createPGContextMenu() {
+        var menu = Menus.getContextMenu("project-context-menu");
+        menu.addMenuItem(PG_PROJECT_ASSOCIATION);
+        console.log(menu);
+
+    }
+
+    function checkAssociation() {
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+        var id = phonegapbuild.getAssociation(projectPath);
+
+
+        if ((typeof (id) === 'undefined') || (id === null)) {
+            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Associate with PhoneGap Build");
+        } else {
+            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Disassociate with PhoneGap Build");
+            createLRebuildMenuItem();
+        }
+
+    }
+
+    function createPGAssociation() {
+
+        var options = "";
+        var form = "";
+        var i = 0;
+
+        var projectList = phonegapbuild.list;
+
+        for (i = 0; i < projectList.length; i++) {
+            options += '<option value=' + projectList[i].id + '>' + projectList[i].title + '</option>';
+        }
+
+
+        form = '<form>' +
+            '   <label for="project">Project:</label>' +
+            '   <select id="projectid">' +
+            options +
+            '   </select><br />' +
+            '   <input id="submit-associate" type="submit" class="btn" name="sumbit" value="Associate" /><br />' +
+            '</form>';
+        $('#pg-interface-content').empty();
+        $('#pg-interface-content').append(form);
+        $('#submit-associate').click(function () {doAssociate(); });
+
+    }
+
+    function handlePGAssociate() {
+        console.log("So association logic here");
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+        var id = phonegapbuild.getAssociation(projectPath);
+
+        if ((typeof (id) === 'undefined') || (id === null)) {
+            createPGAssociation();
+            togglePGPanelDisplay("open");
+        } else {
+            phonegapbuild.removeAssociation(projectPath);
+            checkAssociation();
+        }
+    }
+
 
     function handlePGLoginSuccess() {
-        toggleLoginDisplay("close");
+        togglePGPanelDisplay("close");
         $("#login-holder").remove();
         createLogoutMenuItem();
         phonegapbuild.addListener("listloaded", createListMenuItem);
         setMenuToActive();
         getPGList();
+        createPGContextMenu();
 
     }
 
@@ -177,34 +255,47 @@ define(function (require, exports, module) {
         phonegapbuild.login($username, $password);
     }
 
+
+    function createPGLoginForm() {
+        var form = '<form>' +
+                   '    <label for="username">Username:</label>' +
+                   '    <input id="username" type="email" name="username" placeholder="Username" /><br />' +
+                   '    <label for="password">Password:</label>' +
+                   '    <input id="password" type="password" name="password" placeholder="Password" /><br />' +
+                   '    <input id="submit-login" type="submit" class="btn" name="sumbit" value="Login!" /><br />' +
+                   '</form>';
+        $('#pg-interface-content').empty();
+        $('#pg-interface-content').append(form);
+        $('#submit-login').click(function () {doLogin(); });
+
+    }
+
+
+
     function handlePGMenu(e) {
         e.preventDefault();
         togglePGMenu();
     }
 
+
+
     function createPGInterface() {
         $('.content').append('  <div id="pg-interface" class="bottom-panel">' +
-                                    '  <div class="toolbar simple-toolbar-layout">' +
-                                    '    <div class="title">PhoneGap Build</div><a href="#" class="close">&times;</a>' +
-                                    '  </div>' +
-                                    '    <form>' +
-                                    '        <label for="username">Username:</label>' +
-                                    '        <input id="username" type="email" name="username" placeholder="Username" /><br />' +
-                                    '        <label for="password">Password:</label>' +
-                                    '        <input id="password" type="password" name="password" placeholder="Password" /><br />' +
-                                    '        <input id="loginsubmit" type="submit" class="btn" name="sumbit" value="Login!" /><br />' +
-                                    '    </form>' +
+                                    '<div class="toolbar simple-toolbar-layout">' +
+                                    '   <div class="title">PhoneGap Build</div>' +
+                                    '       <a href="#" class="close">&times;</a>' +
+                                    '   </div>' +
+                                    '   <div id="pg-interface-content">' +
+                                    '   </div>' +
                                 '</div>');
+
         $('#pg-interface input').css("float", "none");
 
         $('#pg-interface .close').click(function () {
-            toggleLoginDisplay();
-        });
-        $('#loginsubmit').click(function () {
-            doLogin();
+            togglePGPanelDisplay();
         });
 
-        toggleLoginDisplay("close");
+        togglePGPanelDisplay("close");
 
         var iconURL = local_require.nameToUrl('assets/pg_icon_disabled.png').split('[')[0];
         var pgUICode =      '<span class="pg-menu-holder dropdown">' +
@@ -222,17 +313,22 @@ define(function (require, exports, module) {
         $pgMenu.css("right", "10px");
         $pgMenu.css("border-top", "1px solid #CCC");
         createLoginMenuItem();
+
     }
 
     function handlePGInitialize(e) {
 
         if (e.detail.tokenDefined === true) {
             handlePGLoginSuccess();
+            checkAssociation();
             console.log("Token was in localstorage");
         } else {
             console.log("Token was NOT in localstorage");
+
         }
     }
+
+    CommandManager.register("Associate with PhoneGap Build", PG_PROJECT_ASSOCIATION, handlePGAssociate);
 
     createPGInterface();
     phonegapbuild.addListener("initialized", handlePGInitialize);

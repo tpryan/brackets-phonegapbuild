@@ -64,6 +64,21 @@ var PhoneGapBuild = function () {
         console.log("Token set to: " + token);
     }
 
+    function setAssociation(fullPath, id) {
+        localStorage.setItem(fullPath, id);
+        console.log("Projects Associated: " + id + " - " + fullPath);
+    }
+
+    function getAssociation(fullPath) { 
+        console.log("Projects requested: " + fullPath);
+        console.log(localStorage);
+        return localStorage.getItem(fullPath);
+    }
+
+    function removeAssociation(fullPath) { 
+        localStorage.removeItem(fullPath);
+    }
+
     function initialize() {
         var token = localStorage.getItem("token");
         var tokenDefined = false;
@@ -177,5 +192,8 @@ var PhoneGapBuild = function () {
     this.logout = logout;
     this.rebuild = rebuild;
     this.uploadFileToProject = uploadFileToProject;
+    this.setAssociation = setAssociation;
+    this.getAssociation = getAssociation;
+    this.removeAssociation = removeAssociation;
 
 };
