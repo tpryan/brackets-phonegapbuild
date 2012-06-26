@@ -15,18 +15,120 @@ define(function (require, exports, module) {
         DocumentManager         = brackets.getModule("document/DocumentManager");
 
     // First, register a command - a UI-less object associating an id to a handler
-    var PG_LIST = "PhoneGap.list";
-    var PG_LOGINLOGOUT = "PhoneGap.login-logout";
-    var PG_REBUILD = "PhoneGap.rebuild";
-    var menu;
+    var local_require = require;
     var id = ""; //hardcode this value for now.
 
     // Local modules
     require('phonegapbuild');
     var phonegapbuild = new PhoneGapBuild();
 
-    // Function to run when the menu item is clicked
-    function handlePGList() {
+    function togglePGMenu(force) {
+        if (typeof (force) === 'undefined') {
+            force = "";
+        }
+
+        console.log("TogglePGMenu called");
+        var $pgMenu = $('#pg-menu');
+
+
+        if (force.length > 0) {
+            if (force === "open") {
+                $pgMenu.css("display", "block");
+            } else if (force === "close") {
+                $pgMenu.css("display", "none");
+            }
+        } else {
+            if ($pgMenu.css("display") === "block") {
+                $pgMenu.css("display", "none");
+            } else {
+                $pgMenu.css("display", "block");
+            }
+        }
+    }
+
+    function toggleLoginDisplay(force) {
+        if (typeof (force) === 'undefined') {
+            force = "";
+        }
+
+        var $pgInterface = $("#pg-interface");
+
+        if (force.length > 0) {
+            if (force === "open") {
+                $pgInterface.show();
+                console.log("Open!");
+            } else if (force === "close") {
+                $pgInterface.hide();
+                console.log("Close!");
+            }
+        } else {
+            if ($pgInterface.css("display") === "none") {
+                $pgInterface.show();
+            } else {
+                $pgInterface.hide();
+            }
+        }
+        EditorManager.resizeEditor();
+    }
+
+    function handlePGMenuLogin(e) {
+        e.preventDefault();
+        toggleLoginDisplay("open");
+        togglePGMenu("close");
+    }
+
+
+    function getPGList() {
+        phonegapbuild.getList();
+    }
+
+
+
+
+    function errorHandler(error) {
+        console.log("Login Error");
+        console.log(error.responseText);
+    }
+
+    function handleRebuild() {
+        //phonegapbuild.rebuild(109540);
+
+
+    }
+
+    function setMenuToActive() {
+        var iconURL = local_require.nameToUrl('assets/pg_icon_idle.png').split('[')[0];
+        $("#pg-menu-toggle img").css("background-color", "#d7facb");
+        $("#pg-menu-toggle img").attr("src", iconURL);
+    }
+
+    function setMenuToError() {
+        var iconURL = local_require.nameToUrl('assets/pg_icon_idle.png').split('[')[0];
+        $("#pg-menu-toggle img").css("background-color", "#ff0000");
+        $("#pg-menu-toggle img").attr("src", iconURL);
+    }
+
+    function setMenuToBuilding() {
+        var iconURL = local_require.nameToUrl('assets/pg_icon_building.png').split('[')[0];
+        $("#pg-menu-toggle img").css("background-color", "#fad791");
+        $("#pg-menu-toggle img").attr("src", iconURL);
+    }
+
+    function setMenuToLogout() {
+        var iconURL = local_require.nameToUrl('assets/pg_icon_disabled.png').split('[')[0];
+        $("#pg-menu-toggle img").css("background-color", "transparent");
+        $("#pg-menu-toggle img").attr("src", iconURL);
+    }
+
+    function createLoginMenuItem() {
+        $("#pg-menu").prepend('<li id="login-holder"><a id="pg-login" href="">Login</li>');
+        $('#pg-login').click(handlePGMenuLogin);
+    }
+
+
+    function handlePGMenuList(e) {
+        e.preventDefault();
+        togglePGMenu("close");
         var list = "";
         var i = 0;
         for (i = 0; i < phonegapbuild.list.length; i++) {
@@ -36,121 +138,52 @@ define(function (require, exports, module) {
         window.alert(list);
     }
 
-    function toggleLoginDisplay(force) {
-        if (typeof (force) === 'undefined') {
-            force = "";
-        }
-        var $pgLogin = $("#pg-login");
-
-        if (force.length > 0) {
-            if (force === "open") {
-                $pgLogin.show();
-            } else if (force === "close") {
-                $pgLogin.hide();
-            }
-        } else {
-            if ($pgLogin.css("display") === "none") {
-                $pgLogin.show();
-            } else {
-                $pgLogin.hide();
-            }
-        }
-        EditorManager.resizeEditor();
-    }
-
-    function switchToLogout() {
-        CommandManager.get(PG_LOGINLOGOUT).setName("Logout");
-        toggleLoginDisplay("close");
-    }
-
-    function switchToLogin() {
-        CommandManager.get(PG_LOGINLOGOUT).setName("Login");
-    }
-
-    function getPGList() {
-        phonegapbuild.getList();
-    }
-
-    function handlePGLogin() {
-        toggleLoginDisplay("open");
-    }
-
-    function handlePGLogout() {
+    function handlePGMenuLogout(e) {
+        e.preventDefault();
         phonegapbuild.logout();
-        switchToLogin();
+        $("#pg-menu").empty();
+        createLoginMenuItem();
+        togglePGMenu("close");
+        setMenuToLogout();
     }
 
-    function errorHandler(error) {
-        console.log("Login Error");
-        console.log(error.responseText);
+    function createLogoutMenuItem() {
+        $("#pg-menu").append('<li id="logout-holder"><a id="pg-logout" href="">Logout</li>');
+        $("#pg-logout").click(handlePGMenuLogout);
     }
 
-    function getFileExtension(filename) {
-        return filename.split('.').pop();
+    function createListMenuItem() {
+        $("#pg-menu").prepend('<li id="list-holder"><a id="pg-list" href="">List</li>');
+        $("#pg-list").click(handlePGMenuList);
     }
 
-    function filterFiles(fileArray) {
-        var i = 0;
 
-        for (i = fileArray.length - 1; i >= 0; i--) {
-            var ext = getFileExtension(fileArray[i].name);
-            var isFile = fileArray[i].isFile;
-            if (fileArray[i].isDirectory === true) {
-                fileArray.splice(i, 1);
-            } else if (!(ext === "html" ||  ext === "js" || ext === "css")) {
-                fileArray.splice(i, 1);
-            }
-
-        }
-        return fileArray;
-    }
-
-    function handleToFile(result) {
-        console.log(result);
-        phonegapbuild.uploadFileToProject(id, result);
-    }
-
-    function handleFileRequest(result) {
-        console.log("File OK");
-        console.log(result);
-
-        result = filterFiles(result);
-        console.log(result);
-
-        result[0].file(handleToFile, errorHandler);
-        //
-    }
-
-    function handleRebuild() {
-        //phonegapbuild.rebuild(109540);
-
-        var projectInfo = ProjectManager.getProjectRoot();
-        //NativeFileSystem.requestNativeFileSystem(projectInfo.fullpath, handleFileRequest, errorHandler);
-        console.log(projectInfo);
-        var reader = projectInfo.createReader();
-        console.log(reader);
-        reader.readEntries(handleFileRequest, errorHandler);
+    function handlePGLoginSuccess() {
+        toggleLoginDisplay("close");
+        $("#login-holder").remove();
+        createLogoutMenuItem();
+        phonegapbuild.addListener("listloaded", createListMenuItem);
+        setMenuToActive();
+        getPGList();
 
     }
 
-    function handleTogglePGLogin() {
-        if (phonegapbuild.initialized === true) {
-            handlePGLogout();
-        } else {
-            handlePGLogin();
-        }
-    }
 
     function doLogin() {
         event.preventDefault();
         var $username = $('#username').val();
         var $password = $('#password').val();
+        phonegapbuild.addListener("login", handlePGLoginSuccess);
         phonegapbuild.login($username, $password);
     }
 
-    function handlePGInitialize(e) {
+    function handlePGMenu(e) {
+        e.preventDefault();
+        togglePGMenu();
+    }
 
-        $('.content').append('  <div id="pg-login" class="bottom-panel">' +
+    function createPGInterface() {
+        $('.content').append('  <div id="pg-interface" class="bottom-panel">' +
                                     '  <div class="toolbar simple-toolbar-layout">' +
                                     '    <div class="title">PhoneGap Build</div><a href="#" class="close">&times;</a>' +
                                     '  </div>' +
@@ -162,10 +195,9 @@ define(function (require, exports, module) {
                                     '        <input id="loginsubmit" type="submit" class="btn" name="sumbit" value="Login!" /><br />' +
                                     '    </form>' +
                                 '</div>');
+        $('#pg-interface input').css("float", "none");
 
-        $('#pg-login input').css("float", "none");
-
-        $('#pg-login .close').click(function () {
+        $('#pg-interface .close').click(function () {
             toggleLoginDisplay();
         });
         $('#loginsubmit').click(function () {
@@ -174,31 +206,45 @@ define(function (require, exports, module) {
 
         toggleLoginDisplay("close");
 
-        console.log(e);
+        var iconURL = local_require.nameToUrl('assets/pg_icon_disabled.png').split('[')[0];
+        var pgUICode =      '<span class="pg-menu-holder dropdown">' +
+                                '<a href="" class="" id="pg-menu-toggle">' +
+                                    '<img src="' + iconURL + '" width="32" height="32" />' +
+                                '</a>' +
+                                '<ul id="pg-menu" class="dropdown-menu">' +
+                                '</ul>' +
+                            '</span>';
+        $('.buttons').append(pgUICode);
+        $('#pg-menu-toggle').click(handlePGMenu);
+
+        var $pgMenu = $('#pg-menu');
+        $pgMenu.css("top", "10px");
+        $pgMenu.css("right", "10px");
+        $pgMenu.css("border-top", "1px solid #CCC");
+        createLoginMenuItem();
+    }
+
+    function handlePGInitialize(e) {
+
         if (e.detail.tokenDefined === true) {
-            getPGList();
+            handlePGLoginSuccess();
             console.log("Token was in localstorage");
-            CommandManager.get(PG_LOGINLOGOUT).setName("Logout");
         } else {
             console.log("Token was NOT in localstorage");
         }
     }
 
-    CommandManager.register("Login", PG_LOGINLOGOUT, handleTogglePGLogin);
-    CommandManager.register("List Build Projects", PG_LIST, handlePGList);
-    CommandManager.register("Rebuild", PG_REBUILD, handleRebuild);
-
-    menu = Menus.addMenu("PhoneGap", "tpryan.phonegap.phonegap");
-    menu.addMenuItem(PG_LOGINLOGOUT);
-    menu.addMenuItem(PG_LIST);
-    menu.addMenuItem(PG_REBUILD);
-
-    // Adding all of the listeners in one spot. 
-    phonegapbuild.addListener("initialized",  handlePGInitialize);
-    phonegapbuild.addListener("login",  getPGList);
-    phonegapbuild.addListener("login",  switchToLogout);
-    phonegapbuild.addListener("logout", switchToLogin);
-
+    createPGInterface();
+    phonegapbuild.addListener("initialized", handlePGInitialize);
     phonegapbuild.initialize();
+
+
+    // close all dropdowns on ESC
+    $(window.document).on("keydown", function (e) {
+        if (e.keyCode === 27) {
+            togglePGMenu("close");
+        }
+    });
+
 
 });

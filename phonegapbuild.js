@@ -79,23 +79,9 @@ var PhoneGapBuild = function () {
 
     }
 
-    function handlerUploadtToProject(response, status, jqXHR) {
-        console.log(response);
-    }
 
     function uploadFileToProject(id, FileEntry) {
-
-
-        var urlToCall = URL_REBUILD + id + "?auth_token=" + self.token;
-        var xhr = new XMLHttpRequest();
-        xhr.open('put', urlToCall, true);        
-        console.log(FileEntry);
-
-        xhr.send(FileEntry);
-        
-
-
-
+        // STUB
     }
 
 
