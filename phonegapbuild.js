@@ -8,6 +8,7 @@ var PhoneGapBuild = function () {
         URL_LIST = URL_BASE + "/api/v1/apps",
         URL_REBUILD = URL_BASE + "/api/v1/apps/",
         self = this,
+        timers = [],
         prefix = "com.terrenceryan.brackets.phonegapbuild.";
 
     function addListener(type, listener) {
@@ -62,12 +63,24 @@ var PhoneGapBuild = function () {
         return true;
     }
 
+    function incompleteCount(statusObj) {
+        var os = "";
+        var i = 0;
+        for (os in statusObj) {
+            if (statusObj[os] !== "complete") {
+                i++;
+            }
+        }
+        return i;
+    }
+
     function parseProjectInfo(response) {
         try {
             console.log("Getting Project details");
             console.log(response);
 
             response.complete = areAllOSComplete(response.status);
+            response.incompleteCount = incompleteCount(response.status);
             var myEvent = new CustomEvent("statusresponse", {detail: response});
             fire(myEvent);
 
@@ -75,10 +88,10 @@ var PhoneGapBuild = function () {
 
             if (areAllOSComplete(response.status) === false) {
                 console.log("Still building");
-                setTimeout(functionCall, 1000);
+                timers.push(setTimeout(functionCall, 1000));
             } else {
                 console.log("Complete");
-                setTimeout(functionCall, 20000);
+                timers.push(setTimeout(functionCall, 20000));
             }
         } catch (an_exception) {
             console.log(response);
@@ -239,6 +252,16 @@ var PhoneGapBuild = function () {
         });
     }
 
+    function killTimers() {
+        var timer = "";
+        console.log("Timer Kill has been invoked.  Beware timers. ");
+        console.log(timers);
+        for (timer in timers) {
+            clearTimeout(timers[timer]);
+            console.log(timers[timer] + " - Killed");
+        }
+    }
+
     this._listeners = {};
 
     this.token = "";
@@ -247,6 +270,7 @@ var PhoneGapBuild = function () {
     this.login = login;
     this.getList = getList;
     this.addListener = addListener;
+    this.removeListener = removeListener;
     this.initialize = initialize;
     this.logout = logout;
     this.rebuild = rebuild;
@@ -255,5 +279,6 @@ var PhoneGapBuild = function () {
     this.getAssociation = getAssociation;
     this.removeAssociation = removeAssociation;
     this.getProjectStatus = getProjectStatus;
+    this.killTimers = killTimers;
 
 };

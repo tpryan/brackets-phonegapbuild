@@ -46,14 +46,18 @@ define(function (require, exports, module) {
         if (force.length > 0) {
             if (force === "open") {
                 $pgMenu.css("display", "block");
+                console.log("Verdict open");
             } else if (force === "close") {
                 $pgMenu.css("display", "none");
+                console.log("Verdict close");
             }
         } else {
             if ($pgMenu.css("display") === "block") {
                 $pgMenu.css("display", "none");
+                console.log("Verdict close");
             } else {
                 $pgMenu.css("display", "block");
+                console.log("Verdict open");
             }
         }
     }
@@ -109,9 +113,15 @@ define(function (require, exports, module) {
     }
 
 
-    function setMenuToActive() {
+    function setMenuToAssociated() {
         var iconURL = local_require.nameToUrl('assets/pg_icon_idle.png').split('[')[0];
-        $("#pg-menu-toggle img").css("background-color", "#d7facb");
+        $("#pg-menu-toggle img").css("background-color", "#85BF71");
+        $("#pg-menu-toggle img").attr("src", iconURL);
+    }
+
+    function setMenuToIdle() {
+        var iconURL = local_require.nameToUrl('assets/pg_icon_idle.png').split('[')[0];
+        $("#pg-menu-toggle img").css("background-color", "transparent");
         $("#pg-menu-toggle img").attr("src", iconURL);
     }
 
@@ -191,9 +201,11 @@ define(function (require, exports, module) {
         $("#pg-project-status").html(subtable);
 
         if (project.complete === true) {
-            setMenuToActive();
+            setMenuToAssociated();
+            updateIncompleteCount(0);
         } else {
             setMenuToBuilding();
+            updateIncompleteCount(project.incompleteCount);
         }
 
     }
@@ -219,9 +231,17 @@ define(function (require, exports, module) {
         $("#pg-status").click(handlePGMenuViewStatus);
     }
 
+    function removeViewStatusMenuItem() {
+        $("#pg-status").remove();
+    }
+
     function createRebuildMenuItem() {
         $("#pg-menu").append('<li id="rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
         $("#pg-rebuild").click(handlePGMenuRebuild);
+    }
+
+    function removeRebuildMenuItem() {
+        $("#pg-rebuild").remove();
     }
 
     function createLogoutMenuItem() {
@@ -236,8 +256,9 @@ define(function (require, exports, module) {
 
     function createPGContextMenu() {
         var menu = Menus.getContextMenu("project-context-menu");
+        menu.addMenuDivider();
         menu.addMenuItem(PG_PROJECT_ASSOCIATION);
-        menu.addMenuDivider("before", PG_PROJECT_ASSOCIATION);
+        
         console.log(menu);
 
     }
@@ -249,24 +270,36 @@ define(function (require, exports, module) {
 
         if ((typeof (id) === 'undefined') || (id === null)) {
             CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Associate with PhoneGap Build");
+            removeRebuildMenuItem();
+            removeViewStatusMenuItem();
+            setMenuToIdle();
+            phonegapbuild.removeListener("statusresponse", handlePGStatusResponse);
+            updateIncompleteCount(0);
+            phonegapbuild.killTimers();
         } else {
             CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Disassociate with PhoneGap Build");
             createRebuildMenuItem();
             createViewStatusMenuItem();
             phonegapbuild.addListener("statusresponse", handlePGStatusResponse);
             phonegapbuild.getProjectStatus(id);
+            setMenuToAssociated();
+
         }
 
     }
+
+
+     
+    
 
     function doAssociate() {
         var $id = $('#projectid').val();
         var projectPath = ProjectManager.getProjectRoot().fullPath;
 
         phonegapbuild.setAssociation(projectPath, $id);
-        createRebuildMenuItem();
+        //createRebuildMenuItem();
         togglePGPanelDisplay("close");
-
+        checkAssociation();
     }
 
     function createPGAssociation() {
@@ -315,7 +348,7 @@ define(function (require, exports, module) {
         $("#login-holder").remove();
         createLogoutMenuItem();
         phonegapbuild.addListener("listloaded", createListMenuItem);
-        setMenuToActive();
+        setMenuToIdle();
         getPGList();
         createPGContextMenu();
 
@@ -363,6 +396,25 @@ define(function (require, exports, module) {
         togglePGMenu();
     }
 
+    function updateIncompleteCount(count){
+        var $orig = $('#incomplete-count').text();
+        var stringCount = count.toString();
+
+        console.log($orig + " vs " + count);
+
+        if ($orig !== stringCount){
+            console.log("Resetting stuff");
+            if (count > 0){
+                $('#incomplete-count').show();
+            }
+            else{
+                $('#incomplete-count').hide();
+            }
+
+            $('#incomplete-count').text(stringCount);
+        }
+    }
+
 
 
     function createPGInterface() {
@@ -386,13 +438,32 @@ define(function (require, exports, module) {
         var iconURL = local_require.nameToUrl('assets/pg_icon_disabled.png').split('[')[0];
         var pgUICode =      '<span class="pg-menu-holder dropdown">' +
                                 '<a href="" class="" id="pg-menu-toggle">' +
-                                    '<img src="' + iconURL + '" width="32" height="32" />' +
+                                    '<img src="' + iconURL + '" width="24" height="24" />' +
+                                    '<span id="incomplete-count"></span>' +
                                 '</a>' +
                                 '<ul id="pg-menu" class="dropdown-menu">' +
                                 '</ul>' +
                             '</span>';
         $('.buttons').append(pgUICode);
         $('#pg-menu-toggle').click(handlePGMenu);
+
+        $('#pg-menu-toggle img').css("margin-bottom", "-8px");
+        $('#pg-menu-toggle img').css("border-radius", "8px");
+
+        // There is a probably a better way of doing this then having a bazillion jQuery calls.
+        $('#incomplete-count').click(handlePGMenu);
+        $('#incomplete-count').css("border-radius", "8px");
+        $('#incomplete-count').css("height", "16px");
+        $('#incomplete-count').css("width", "16px");
+        $('#incomplete-count').css("font-size", "16px");
+        $('#incomplete-count').css("color", "#FFF");
+        $('#incomplete-count').css("background-color", "#F00");
+        $('#incomplete-count').css("text-align", "center");
+        $('#incomplete-count').css("position", "relative");
+        $('#incomplete-count').css("float", "right");
+        $('#incomplete-count').css("margin-top", "-5px");
+        $('#incomplete-count').css("margin-left", "-5px");
+        $('#incomplete-count').hide();
 
         var $pgMenu = $('#pg-menu');
         $pgMenu.css("top", "10px");
