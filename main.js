@@ -436,7 +436,7 @@ define(function (require, exports, module) {
         togglePGPanelDisplay("close");
 
         var iconURL = local_require.nameToUrl('assets/pg_icon_disabled.png').split('[')[0];
-        var pgUICode =      '<span class="pg-menu-holder dropdown">' +
+        var pgUICode =      '<span id="pg-menu-holder" class="dropdown">' +
                                 '<a href="" class="" id="pg-menu-toggle">' +
                                     '<img src="' + iconURL + '" width="24" height="24" />' +
                                     '<span id="incomplete-count"></span>' +
@@ -446,6 +446,11 @@ define(function (require, exports, module) {
                             '</span>';
         $('.buttons').append(pgUICode);
         $('#pg-menu-toggle').click(handlePGMenu);
+
+        $('.CodeMirror').click(function() {togglePGMenu("close");} );
+        $('.sidebar').click(function() {togglePGMenu("close");} );
+        $('#sidebar-resizer').click(function() {togglePGMenu("close");} );
+        $('#main-toolbar .nav').click(function() {togglePGMenu("close");} );
 
         $('#pg-menu-toggle img').css("margin-bottom", "-8px");
         $('#pg-menu-toggle img').css("border-radius", "8px");
@@ -464,6 +469,8 @@ define(function (require, exports, module) {
         $('#incomplete-count').css("margin-top", "-5px");
         $('#incomplete-count').css("margin-left", "-5px");
         $('#incomplete-count').hide();
+
+
 
         var $pgMenu = $('#pg-menu');
         $pgMenu.css("top", "10px");
