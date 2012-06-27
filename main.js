@@ -185,6 +185,24 @@ define(function (require, exports, module) {
         phonegapbuild.rebuild(id);
     }
 
+    function updateIncompleteCount(count) {
+        var $orig = $('#incomplete-count').text();
+        var stringCount = count.toString();
+
+        console.log($orig + " vs " + count);
+
+        if ($orig !== stringCount) {
+            console.log("Resetting stuff");
+            if (count > 0) {
+                $('#incomplete-count').show();
+            } else {
+                $('#incomplete-count').hide();
+            }
+
+            $('#incomplete-count').text(stringCount);
+        }
+    }
+
     function handlePGStatusResponse(e) {
         var project = e.detail;
         var propertyname;
@@ -258,9 +276,7 @@ define(function (require, exports, module) {
         var menu = Menus.getContextMenu("project-context-menu");
         menu.addMenuDivider();
         menu.addMenuItem(PG_PROJECT_ASSOCIATION);
-        
         console.log(menu);
-
     }
 
     function checkAssociation() {
@@ -288,16 +304,11 @@ define(function (require, exports, module) {
 
     }
 
-
-     
-    
-
     function doAssociate() {
         var $id = $('#projectid').val();
         var projectPath = ProjectManager.getProjectRoot().fullPath;
 
         phonegapbuild.setAssociation(projectPath, $id);
-        //createRebuildMenuItem();
         togglePGPanelDisplay("close");
         checkAssociation();
     }
@@ -396,27 +407,6 @@ define(function (require, exports, module) {
         togglePGMenu();
     }
 
-    function updateIncompleteCount(count){
-        var $orig = $('#incomplete-count').text();
-        var stringCount = count.toString();
-
-        console.log($orig + " vs " + count);
-
-        if ($orig !== stringCount){
-            console.log("Resetting stuff");
-            if (count > 0){
-                $('#incomplete-count').show();
-            }
-            else{
-                $('#incomplete-count').hide();
-            }
-
-            $('#incomplete-count').text(stringCount);
-        }
-    }
-
-
-
     function createPGInterface() {
         $('.content').append('  <div id="pg-interface" class="bottom-panel">' +
                                     '<div class="toolbar simple-toolbar-layout">' +
@@ -447,10 +437,10 @@ define(function (require, exports, module) {
         $('.buttons').append(pgUICode);
         $('#pg-menu-toggle').click(handlePGMenu);
 
-        $('.CodeMirror').click(function() {togglePGMenu("close");} );
-        $('.sidebar').click(function() {togglePGMenu("close");} );
-        $('#sidebar-resizer').click(function() {togglePGMenu("close");} );
-        $('#main-toolbar .nav').click(function() {togglePGMenu("close");} );
+        $('.CodeMirror').click(function () {togglePGMenu("close"); });
+        $('.sidebar').click(function () {togglePGMenu("close"); });
+        $('#sidebar-resizer').click(function () {togglePGMenu("close"); });
+        $('#main-toolbar .nav').click(function () {togglePGMenu("close"); });
 
         $('#pg-menu-toggle img').css("margin-bottom", "-8px");
         $('#pg-menu-toggle img').css("border-radius", "8px");
