@@ -52,6 +52,55 @@ var PhoneGapBuild = function () {
         }
     }
 
+    function parseProjectInfo(response)
+    {
+        try // try to output this to the javascript console
+        {
+            console.log("Getting Project details");
+            console.log(response);
+            //var results =getProjectInfo(response,determinePlatform());
+            // console.log("Populating UI");
+            // populateDetails(results);
+
+            // console.log(results.status);
+            // if (results.status == "pending"){
+            //     console.log("Scheduling another attempt");
+            //     attempts = attempts + 1;
+            //     setTimeout("getProjectDetails()", 1000);
+            //     $('#downloadbtn').addClass("disabled");
+            //     $('#downloadbtn').removeClass("btn-primary");
+            // }
+            // else{
+            //     setTimeout("getProjectDetails()", 10000);
+            //     $('#downloadbtn').removeClass("disabled");
+            //     $('#downloadbtn').addClass("btn-primary");
+            // }
+
+        }
+        catch(an_exception) // alert for the users that don't have a javascript console
+        {
+            console.log(response);
+            console.log(an_exception);
+            alert(an_exception);
+        }
+    }
+
+
+
+
+
+    function getProjectDetails(id) {
+        $.ajax({
+            url: URL_LIST + "/" + id,
+            success: parseProjectInfo,
+            type: "get",
+            dataType: 'jsonp',
+            error: errorHandler,
+            cache: false,
+            crossDomain: true
+        });
+    }
+
     function errorHandler(error) {
         console.log("Call Error");
         console.log(error.status);
@@ -70,13 +119,13 @@ var PhoneGapBuild = function () {
         console.log("Projects Associated: " + id + " - " + fullPath);
     }
 
-    function getAssociation(fullPath) { 
+    function getAssociation(fullPath) {
         console.log("Projects requested: " + fullPath);
         console.log(localStorage);
         return localStorage.getItem(prefix + fullPath);
     }
 
-    function removeAssociation(fullPath) { 
+    function removeAssociation(fullPath) {
         localStorage.removeItem(prefix + fullPath);
     }
 
@@ -142,6 +191,7 @@ var PhoneGapBuild = function () {
         console.log('Rebuild Requested');
         var myEvent = new CustomEvent("rebuildRequested", {});
         fire(myEvent);
+
     }
 
     function rebuild(id) {
@@ -154,6 +204,8 @@ var PhoneGapBuild = function () {
             cache: false,
             crossDomain: true
         });
+        getProjectDetails(id);
+
     }
 
 
