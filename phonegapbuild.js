@@ -7,7 +7,8 @@ var PhoneGapBuild = function () {
         URL_TOKEN = URL_BASE + "/token",
         URL_LIST = URL_BASE + "/api/v1/apps",
         URL_REBUILD = URL_BASE + "/api/v1/apps/",
-        self = this;
+        self = this,
+        prefix = "com.terrenceryan.brackets.phonegapbuild.";
 
     function addListener(type, listener) {
         if (typeof self._listeners[type] === "undefined") {
@@ -60,30 +61,39 @@ var PhoneGapBuild = function () {
 
     function setToken(token) {
         self.token = token;
-        localStorage.setItem('token', token);
+        localStorage.setItem(prefix + 'token', token);
         console.log("Token set to: " + token);
     }
 
     function setAssociation(fullPath, id) {
-        localStorage.setItem(fullPath, id);
+        localStorage.setItem(prefix + fullPath, id);
         console.log("Projects Associated: " + id + " - " + fullPath);
     }
 
     function getAssociation(fullPath) { 
         console.log("Projects requested: " + fullPath);
         console.log(localStorage);
-        return localStorage.getItem(fullPath);
+        return localStorage.getItem(prefix + fullPath);
     }
 
     function removeAssociation(fullPath) { 
-        localStorage.removeItem(fullPath);
+        localStorage.removeItem(prefix + fullPath);
     }
 
     function initialize() {
-        var token = localStorage.getItem("token");
+        var token = localStorage.getItem(prefix + "token");
         var tokenDefined = false;
 
-        if (token !== "") {
+        console.log("Initalizing");
+        console.log(token);
+        if ((token === null) || (token === 'null')) {
+            console.log("Token is null");
+            self.initialized = true;
+        } else if (token === "") {
+            console.log("Token is Blank");
+            self.initialized = true;
+        } else {
+            console.log("Token is defined. " + token);
             tokenDefined = true;
             setToken(token);
             self.initialized = true;
