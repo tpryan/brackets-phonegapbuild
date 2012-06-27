@@ -26,4 +26,5 @@ TODO's
 * Create local storage for:
     * file location to project link
 * Figure out how to handle online/offline
-* Figure out how to upload files from Brackets to PhoneGap Build.    
+* Figure out how to upload files from Brackets to PhoneGap Build.
+* Make the UI Prettier, it's pretty lame right now.    
