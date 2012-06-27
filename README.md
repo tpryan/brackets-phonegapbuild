@@ -6,9 +6,9 @@ application.
 
 To do this, there are a couple of things the extension must do:
 
-* Associate a folder with a PhoneGap Build Project
+* Associate a folder with a PhoneGap Build Project **(Done)**
 * Synch a folder with the associated PhoneGap Build Project
-* Maintain the current status of the PhoneGap Build Project (Building, Success, Error) 
+* Maintain the current status of the PhoneGap Build Project (Building, Success, Error) **(Done)**
 
 There are also some things that might be nice, but aren't necessary:
 
@@ -18,8 +18,8 @@ There are also some things that might be nice, but aren't necessary:
 Things that we will have to figure out:
 
 * Getting files up to PhoneGap Build
-* Associating Folders with PGB Projects
-
+* Associating Folders with PGB Projects **(Done)**
+* How to build a pleasing UI. 
 
 TODO's
 
