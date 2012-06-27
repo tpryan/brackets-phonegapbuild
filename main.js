@@ -200,7 +200,7 @@ define(function (require, exports, module) {
 
     }
 
-    function doAssociate(){
+    function doAssociate() {
         var $id = $('#projectid').val();
         var projectPath = ProjectManager.getProjectRoot().fullPath;
 
