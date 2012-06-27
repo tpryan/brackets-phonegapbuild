@@ -27,6 +27,12 @@ define(function (require, exports, module) {
 
 
 
+    function getAssociatedID() {
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+        var id = phonegapbuild.getAssociation(projectPath);
+        return id;
+    }
+
     function togglePGMenu(force) {
         if (typeof (force) === 'undefined') {
             force = "";
@@ -158,7 +164,7 @@ define(function (require, exports, module) {
     }
 
 
-    function createLRebuildMenuItem() {
+    function createRebuildMenuItem() {
         $("#pg-menu").append('<li id="rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
         $("#pg-rebuild").click(handlePGMenuRebuild);
     }
@@ -189,8 +195,18 @@ define(function (require, exports, module) {
             CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Associate with PhoneGap Build");
         } else {
             CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Disassociate with PhoneGap Build");
-            createLRebuildMenuItem();
+            createRebuildMenuItem();
         }
+
+    }
+
+    function doAssociate(){
+        var $id = $('#projectid').val();
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+
+        phonegapbuild.setAssociation(projectPath, $id);
+        createRebuildMenuItem();
+        togglePGPanelDisplay("close");
 
     }
 
@@ -208,7 +224,7 @@ define(function (require, exports, module) {
 
 
         form = '<form>' +
-            '   <label for="project">Project:</label>' +
+            '   <label for="projectid">Project:</label>' +
             '   <select id="projectid">' +
             options +
             '   </select><br />' +
