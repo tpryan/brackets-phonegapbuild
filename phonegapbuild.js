@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, event, CustomEvent, localStorage */
+/*global define, $, brackets, window, event, CustomEvent, localStorage, setTimeout */
 
 var PhoneGapBuild = function () {
     'use strict';
@@ -52,44 +52,48 @@ var PhoneGapBuild = function () {
         }
     }
 
-    function parseProjectInfo(response)
-    {
-        try // try to output this to the javascript console
-        {
+    function areAllOSComplete(statusObj) {
+        var os = "";
+        for (os in statusObj) {
+            if (statusObj[os] !== "complete") {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function parseProjectInfo(response) {
+        try {
             console.log("Getting Project details");
             console.log(response);
-            //var results =getProjectInfo(response,determinePlatform());
-            // console.log("Populating UI");
-            // populateDetails(results);
 
-            // console.log(results.status);
-            // if (results.status == "pending"){
-            //     console.log("Scheduling another attempt");
-            //     attempts = attempts + 1;
-            //     setTimeout("getProjectDetails()", 1000);
-            //     $('#downloadbtn').addClass("disabled");
-            //     $('#downloadbtn').removeClass("btn-primary");
-            // }
-            // else{
-            //     setTimeout("getProjectDetails()", 10000);
-            //     $('#downloadbtn').removeClass("disabled");
-            //     $('#downloadbtn').addClass("btn-primary");
-            // }
+            response.complete = areAllOSComplete(response.status);
+            var myEvent = new CustomEvent("statusresponse", {detail: response});
+            fire(myEvent);
 
-        }
-        catch(an_exception) // alert for the users that don't have a javascript console
-        {
+            var functionCall = function () { self.getProjectStatus(response.id); };
+
+            if (areAllOSComplete(response.status) === false) {
+                console.log("Still building");
+                setTimeout(functionCall, 1000);
+            } else {
+                console.log("Complete");
+                setTimeout(functionCall, 20000);
+            }
+        } catch (an_exception) {
             console.log(response);
             console.log(an_exception);
-            alert(an_exception);
         }
     }
 
+    function errorHandler(error) {
+        console.log("Call Error");
+        console.log(error.status);
+        console.log(error.statusText);
+        console.log(error.responseText);
+    }
 
-
-
-
-    function getProjectDetails(id) {
+    function getProjectStatus(id) {
         $.ajax({
             url: URL_LIST + "/" + id,
             success: parseProjectInfo,
@@ -99,13 +103,6 @@ var PhoneGapBuild = function () {
             cache: false,
             crossDomain: true
         });
-    }
-
-    function errorHandler(error) {
-        console.log("Call Error");
-        console.log(error.status);
-        console.log(error.statusText);
-        console.log(error.responseText);
     }
 
     function setToken(token) {
@@ -189,7 +186,7 @@ var PhoneGapBuild = function () {
 
     function handleRebuildSuccess(response, status, jqXHR) {
         console.log('Rebuild Requested');
-        var myEvent = new CustomEvent("rebuildRequested", {});
+        var myEvent = new CustomEvent("rebuildrequested", {});
         fire(myEvent);
 
     }
@@ -204,7 +201,7 @@ var PhoneGapBuild = function () {
             cache: false,
             crossDomain: true
         });
-        getProjectDetails(id);
+        getProjectStatus(id);
 
     }
 
@@ -257,5 +254,6 @@ var PhoneGapBuild = function () {
     this.setAssociation = setAssociation;
     this.getAssociation = getAssociation;
     this.removeAssociation = removeAssociation;
+    this.getProjectStatus = getProjectStatus;
 
 };

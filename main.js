@@ -1,4 +1,4 @@
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, undef: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, event, PhoneGapBuild */
 
 /** Simple extension that adds a "File > Hello World" menu item */
@@ -38,6 +38,7 @@ define(function (require, exports, module) {
             force = "";
         }
 
+
         console.log("TogglePGMenu called");
         var $pgMenu = $('#pg-menu');
 
@@ -57,9 +58,13 @@ define(function (require, exports, module) {
         }
     }
 
-    function togglePGPanelDisplay(force) {
+    function togglePGPanelDisplay(force, height) {
         if (typeof (force) === 'undefined') {
             force = "";
+        }
+
+        if (typeof (height) === 'undefined') {
+            height = "200px";
         }
 
         var $pgInterface = $("#pg-interface");
@@ -79,6 +84,7 @@ define(function (require, exports, module) {
                 $pgInterface.hide();
             }
         }
+        $('#pg-interface').css("height", height);
         EditorManager.resizeEditor();
     }
 
@@ -145,6 +151,13 @@ define(function (require, exports, module) {
         window.alert(list);
     }
 
+    function handlePBRebuildRequested(e) {
+        var id = getAssociatedID();
+        setMenuToBuilding();
+        phonegapbuild.addListener("statusresponse", handlePGStatusResponse);
+        phonegapbuild.getProjectStatus(id);
+    }
+
     function handlePGMenuLogout(e) {
         e.preventDefault();
         phonegapbuild.logout();
@@ -155,14 +168,56 @@ define(function (require, exports, module) {
     }
 
     function handlePGMenuRebuild(e) {
+        var id = getAssociatedID();
         e.preventDefault();
         togglePGMenu("close");
-        var projectPath = ProjectManager.getProjectRoot().fullPath;
-        var id = phonegapbuild.getAssociation(projectPath);
+        phonegapbuild.addListener("rebuildrequested", handlePBRebuildRequested);
         phonegapbuild.rebuild(id);
-        setMenuToBuilding();
     }
 
+    function handlePGStatusResponse(e) {
+        var project = e.detail;
+        var propertyname;
+
+        var subtable = '<table class="condensed-table">';
+
+        for (propertyname in project.status) {
+            subtable += '<tr><th>' + propertyname + '</th><td>' + project.status[propertyname] + '</td></tr>';
+        }
+        subtable += '</table>';
+
+        $("#pg-project-title").text(project.title);
+        $("#pg-project-description").text(project.description);
+        $("#pg-project-status").html(subtable);
+
+        if (project.complete === true) {
+            setMenuToActive();
+        } else {
+            setMenuToBuilding();
+        }
+
+    }
+
+    function handlePGMenuViewStatus(e) {
+        e.preventDefault();
+        var id = getAssociatedID();
+        console.log("Handling status call");
+        togglePGMenu("close");
+        createPGStatusView();
+
+        if ($("#pg-interface").css("display") === 'none') {
+            console.log("opening panel");
+            togglePGPanelDisplay("open", "360px");
+        }
+
+        phonegapbuild.addListener("statusresponse", handlePGStatusResponse);
+        phonegapbuild.getProjectStatus(id);
+    }
+
+    function createViewStatusMenuItem() {
+        $("#pg-menu").append('<li id="status-holder"><a id="pg-status" href="">View Status</li>');
+        $("#pg-status").click(handlePGMenuViewStatus);
+    }
 
     function createRebuildMenuItem() {
         $("#pg-menu").append('<li id="rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
@@ -182,13 +237,14 @@ define(function (require, exports, module) {
     function createPGContextMenu() {
         var menu = Menus.getContextMenu("project-context-menu");
         menu.addMenuItem(PG_PROJECT_ASSOCIATION);
+        menu.addMenuDivider("before", PG_PROJECT_ASSOCIATION);
         console.log(menu);
 
     }
 
     function checkAssociation() {
-        var projectPath = ProjectManager.getProjectRoot().fullPath;
-        var id = phonegapbuild.getAssociation(projectPath);
+
+        var id = getAssociatedID();
 
 
         if ((typeof (id) === 'undefined') || (id === null)) {
@@ -196,6 +252,9 @@ define(function (require, exports, module) {
         } else {
             CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Disassociate with PhoneGap Build");
             createRebuildMenuItem();
+            createViewStatusMenuItem();
+            phonegapbuild.addListener("statusresponse", handlePGStatusResponse);
+            phonegapbuild.getProjectStatus(id);
         }
 
     }
@@ -283,6 +342,17 @@ define(function (require, exports, module) {
         $('#pg-interface-content').empty();
         $('#pg-interface-content').append(form);
         $('#submit-login').click(function () {doLogin(); });
+
+    }
+
+    function createPGStatusView() {
+        var table = '<table class="table table-bordered">' +
+            '<tr><th>Title</th><td id="pg-project-title">Loading <i class="icon-cog status-indicator"></i></td></tr>' +
+            '<tr><th>Description</th><td id="pg-project-description">Loading <i class="icon-cog status-indicator"></i></td></tr>' +
+            '<tr><th>Project Status</th><td id="pg-project-status">Loading <i class="icon-cog status-indicator"></i></td></tr>' +
+            '</table>';
+        $('#pg-interface-content').empty();
+        $('#pg-interface-content').append(table);
 
     }
 
