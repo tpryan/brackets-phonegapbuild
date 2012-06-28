@@ -106,6 +106,12 @@ var PhoneGapBuild = function () {
         console.log(error.responseText);
     }
 
+    function loginErrorHandler(error) {
+        console.log("Login Error");
+        var myEvent = new CustomEvent("loginerror");
+        fire(myEvent);
+    }
+
     function getProjectStatus(id) {
         $.ajax({
             url: URL_LIST + "/" + id,
@@ -184,10 +190,11 @@ var PhoneGapBuild = function () {
     }
 
 	function login(username, password) {
+        console.log("login Called");
 		$.ajax({
             url: URL_TOKEN,
             type: "post",
-            error: errorHandler,
+            error: loginErrorHandler,
             context: PhoneGapBuild,
             success: handleLoginSuccess,
             username: username,

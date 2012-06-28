@@ -95,7 +95,7 @@ define(function (require, exports, module) {
     function handlePGMenuLogin(e) {
         e.preventDefault();
         createPGLoginForm();
-        togglePGPanelDisplay("open");
+        togglePGPanelDisplay("open", "250px");
         togglePGMenu("close");
     }
 
@@ -363,29 +363,54 @@ define(function (require, exports, module) {
         getPGList();
         createPGContextMenu();
 
+
+    }
+
+    function handlePGLoginFailure() {
+        $('#pg-login-alert').show();
+        $('#pg-login-indicator').hide();
     }
 
 
     function doLogin() {
         event.preventDefault();
+        $('#pg-login-indicator').show();
+        $('#pg-login-alert').hide();
         var $username = $('#username').val();
         var $password = $('#password').val();
+        phonegapbuild.addListener("loginerror", handlePGLoginFailure);
         phonegapbuild.addListener("login", handlePGLoginSuccess);
         phonegapbuild.login($username, $password);
     }
 
 
     function createPGLoginForm() {
-        var form = '<form>' +
-                   '    <label for="username">Username:</label>' +
-                   '    <input id="username" type="email" name="username" placeholder="Username" /><br />' +
-                   '    <label for="password">Password:</label>' +
-                   '    <input id="password" type="password" name="password" placeholder="Password" /><br />' +
-                   '    <input id="submit-login" type="submit" class="btn" name="sumbit" value="Login!" /><br />' +
-                   '</form>';
+
+        var iconURL = local_require.nameToUrl('../../../styles/images/throbber.gif').split('[')[0];
+
+        var form = '<form id="pg-login-form">' +
+                    '<div id="pg-login-alert" class="alert-message error">Check your username and password.</div>' + 
+                    '    <fieldset>' +
+                    '    <div class="clearfix">' + 
+                    '    <label for="username">Username:</label>' +
+                    '    <input id="username" type="email" name="username" placeholder="Username">' +
+                    '    </div>' +
+                    '    <div class="clearfix">' + 
+                    '    <label for="password">Password:</label>' +
+                    '    <input id="password" type="password" name="password" placeholder="Password">' +
+                    '    </div>' +
+                    '    <div class="actions">' +
+                    '        <input id="pg-submit-login" type="submit" class="btn primary" name="sumbit" value="Login!">' +
+                    '        <span id="pg-login-indicator"><img src=' + iconURL + ' width="16" height="16" /></span>'
+                    '    </div>' +
+                    '    </fieldset>' +
+                    '</form>';
         $('#pg-interface-content').empty();
         $('#pg-interface-content').append(form);
-        $('#submit-login').click(function () {doLogin(); });
+        $('#pg-submit-login').click(function () {doLogin(); });
+        $('#pg-submit-login').css("margin-left", "-20px");
+        $('#pg-login-alert').hide();
+        $('#pg-login-indicator').hide();
 
     }
 
