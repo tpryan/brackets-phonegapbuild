@@ -175,6 +175,7 @@ define(function (require, exports, module) {
         createLoginMenuItem();
         togglePGMenu("close");
         setMenuToLogout();
+        removePGContextMenu();
     }
 
     function handlePGMenuRebuild(e) {
@@ -244,32 +245,55 @@ define(function (require, exports, module) {
         phonegapbuild.getProjectStatus(id);
     }
 
+    function orderPGMenu() {
+        var $pgMenu = $("#pg-menu");
+        var $logout = $('#pg-logout-holder');
+        var $logoutDivider = $('#pg-logout-divider');
+
+        $logout.detach();
+        $logoutDivider.detach();
+        $pgMenu.append($logoutDivider);
+        $pgMenu.append($logout);
+
+    }
+
     function createViewStatusMenuItem() {
-        $("#pg-menu").append('<li id="status-holder"><a id="pg-status" href="">View Status</li>');
+        $("#pg-menu").append('<li id="pg-status-holder"><a id="pg-status" href="">View Status</li>');
         $("#pg-status").click(handlePGMenuViewStatus);
+        orderPGMenu();
     }
 
     function removeViewStatusMenuItem() {
-        $("#pg-status").remove();
+        $("#pg-status-holder").remove();
     }
 
     function createRebuildMenuItem() {
-        $("#pg-menu").append('<li id="rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
-        $("#pg-rebuild").click(handlePGMenuRebuild);
+        if ($("#pg-rebuild-holder").length === 0) {
+            $("#pg-menu").append('<li id="pg-rebuild-holder"><a id="pg-rebuild" href="">Rebuild</li>');
+            $("#pg-rebuild").click(handlePGMenuRebuild);
+            orderPGMenu();
+        }
     }
 
     function removeRebuildMenuItem() {
-        $("#pg-rebuild").remove();
+        $("#pg-rebuild-holder").remove();
     }
 
     function createLogoutMenuItem() {
-        $("#pg-menu").append('<li id="logout-holder"><a id="pg-logout" href="">Logout</li>');
-        $("#pg-logout").click(handlePGMenuLogout);
+        if ($("#pg-logout-holder").length === 0) {
+            $("#pg-menu").append('<li id="pg-logout-divider"><hr class="divider" /></li>');
+            $("#pg-menu").append('<li id="pg-logout-holder"><a id="pg-logout" href="">Logout</li>');
+            $("#pg-logout").click(handlePGMenuLogout);
+            orderPGMenu();
+        }
     }
 
     function createListMenuItem() {
-        $("#pg-menu").prepend('<li id="list-holder"><a id="pg-list" href="">List</li>');
-        $("#pg-list").click(handlePGMenuList);
+        if ($("#pg-list-holder").length === 0) {
+            $("#pg-menu").prepend('<li id="pg-list-holder"><a id="pg-list" href="">List</li>');
+            $("#pg-list").click(handlePGMenuList);
+            orderPGMenu();
+        }
     }
 
     function createPGContextMenu() {
@@ -277,6 +301,15 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(PG_PROJECT_ASSOCIATION);
         console.log(menu);
+    }
+
+
+
+    function removePGContextMenu() {
+        //REMOVE MENU NOT IMPLEMENTED YET
+        //var menu = Menus.getContextMenu("project-context-menu");
+        //menu.removeMenuItem(PG_PROJECT_ASSOCIATION);
+        //console.log(menu);
     }
 
     function checkAssociation() {
@@ -304,7 +337,8 @@ define(function (require, exports, module) {
 
     }
 
-    function doAssociate() {
+    function doAssociate(e) {
+        event.preventDefault();
         var $id = $('#projectid').val();
         var projectPath = ProjectManager.getProjectRoot().fullPath;
 
@@ -389,19 +423,19 @@ define(function (require, exports, module) {
         var iconURL = local_require.nameToUrl('../../../styles/images/throbber.gif').split('[')[0];
 
         var form = '<form id="pg-login-form">' +
-                    '<div id="pg-login-alert" class="alert-message error">Check your username and password.</div>' + 
+                    '<div id="pg-login-alert" class="alert-message error">Check your username and password.</div>' +
                     '    <fieldset>' +
-                    '    <div class="clearfix">' + 
+                    '    <div class="clearfix">' +
                     '    <label for="username">Username:</label>' +
                     '    <input id="username" type="email" name="username" placeholder="Username">' +
                     '    </div>' +
-                    '    <div class="clearfix">' + 
+                    '    <div class="clearfix">' +
                     '    <label for="password">Password:</label>' +
                     '    <input id="password" type="password" name="password" placeholder="Password">' +
                     '    </div>' +
                     '    <div class="actions">' +
                     '        <input id="pg-submit-login" type="submit" class="btn primary" name="sumbit" value="Login!">' +
-                    '        <span id="pg-login-indicator"><img src=' + iconURL + ' width="16" height="16" /></span>'
+                    '        <span id="pg-login-indicator"><img src=' + iconURL + ' width="16" height="16" /></span>' +
                     '    </div>' +
                     '    </fieldset>' +
                     '</form>';
