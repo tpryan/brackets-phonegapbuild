@@ -318,7 +318,7 @@ define(function (require, exports, module) {
 
 
         if ((typeof (id) === 'undefined') || (id === null)) {
-            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Associate with PhoneGap Build");
+            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Link with PhoneGap Build");
             removeRebuildMenuItem();
             removeViewStatusMenuItem();
             setMenuToIdle();
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
             updateIncompleteCount(0);
             phonegapbuild.killTimers();
         } else {
-            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Disassociate with PhoneGap Build");
+            CommandManager.get(PG_PROJECT_ASSOCIATION).setName("Unlink with PhoneGap Build");
             createRebuildMenuItem();
             createViewStatusMenuItem();
             phonegapbuild.addListener("statusresponse", handlePGStatusResponse);
@@ -365,7 +365,7 @@ define(function (require, exports, module) {
             '   <select id="projectid">' +
             options +
             '   </select><br />' +
-            '   <input id="submit-associate" type="submit" class="btn" name="sumbit" value="Associate" /><br />' +
+            '   <input id="submit-associate" type="submit" class="btn" name="sumbit" value="Link" /><br />' +
             '</form>';
         $('#pg-interface-content').empty();
         $('#pg-interface-content').append(form);
